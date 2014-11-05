@@ -8,8 +8,9 @@
  *
  * @package   StockMarketAPI
  * @author    Ben Marshall <me@benmarshall.me>
+ * @subauthor Ryan Allen <ryan@ndigit.co>
  * @license   http://www.opensource.org/licenses/mit-license.html  MIT License
- * @version   1.2
+ * @version   1.21
  * @link      http://www.benmarshall.me/php-stock-market-api
  * @since     Class available since Release 1.0
  */
@@ -38,7 +39,7 @@ class StockMarketAPI
    * @var boolean/array
    * @access public
    */
-  public $history = false;
+  public $history;
 
   /*
    * Initializes the MarketWatchAPI
@@ -66,6 +67,7 @@ class StockMarketAPI
    * @since Method available since Release 1.0
    */
   private function _setParam($param, $val) {
+
     switch($param)
     {
       case 'symbol':
@@ -91,70 +93,77 @@ class StockMarketAPI
     if(!$this->history) {
       $file = 'http://download.finance.yahoo.com/d/quotes.csv?s='.$this->symbol.'&f='.$this->_convertStat($this->stat).'=.csv';
     } elseif(is_array($this->history)) {
+		
+	  //Make sure they aren't trying to use multiple stocks. Unsupported as of 11-5-14.	
+	  if (strstr($this->symbol,"+")) {
+		trigger_error("This method is not supported by the Yahoo! Finance API. You cannot select a date range AND multiple stocks.");
+		return;  
+	  }
+	  
       $this->history['start'] = isset($this->history['start']) ? $this->history['start'] : '1-1-'.(date('Y') - 1);
       $start = explode('-', $this->history['start']); // dd-mm-yyyy
-      $a = $start[1] - 1; // Month
-      $b = $start[2]; // Day
-      $c = $start[0]; // Year
+      $a = $start[0] - 1; // Month
+      $b = $start[1]; // Day
+      $c = $start[2]; // Year
 
       $this->history['end'] = isset($this->history['end']) ? $this->history['end'] : '12-31-'.date('Y');
       $end = explode('-', $this->history['end']); // dd-mm-yyyy
-      $d = $end[1] - 1; // Month
-      $e = $end[2]; // Day
-      $f = $end[0]; // Year
-
+      $d = $end[0] - 1; // Month
+      $e = $end[1]; // Day
+      $f = $end[2]; // Year
+		
       $g = isset($this->history['interval']) ? $this->history['interval'] : 'd'; // d = Daily, w = Weekly, m = Monthly
 
       $file = 'http://ichart.yahoo.com/table.csv?s='.$this->symbol.'&a='.$a.'&b='.$b.'&c='.$c.'&d='.$d.'&e='.$e.'&f='.$f.'&g='.$g.'&ignore=.csv';
     }
     $handle = fopen($file, "r");
     if(!$this->history) {
-      $data = fgetcsv($handle, false, ',');
+	  while (($data = fgetcsv($handle, false, ",")) !== FALSE) { $return[] = $data;} //Loop through and store each item in an indice
     } elseif(is_array($this->history)) {
-      $row = 0;
       $return = array();
-      while (($data = fgetcsv($handle, false, ',')) !== FALSE) {
-        $num = count($data);
-        $return[$row] = array();
-        for ($c=0; $c < $num; $c++) {
-          switch($c) {
-            case 0:
-              $key = 'date';
-            break;
-            case 1:
-              $key = 'open';
-            break;
-            case 2:
-              $key = 'high';
-            break;
-            case 3:
-              $key = 'low';
-            break;
-            case 4:
-              $key = 'close';
-            break;
-            case 5:
-              $key = 'volume';
-            break;
-            case 6:
-              $key = 'adj_close';
-            break;
-          }
-          $return[$row][$key] = $data[$c];
-        }
-        $row++;
-      }
-      print_r(array_splice($return, 1, -1));
+	  $row = 0;  
+	  while (($data = fgetcsv($handle, false, ',')) !== FALSE) {
+		$num = count($data);
+		$return[$this->symbol][$row] = array();
+		for ($c=0; $c < $num; $c++) {
+		  switch($c) {
+			case 0:
+			  $key = 'date';
+			break;
+			case 1:
+			  $key = 'open';
+			break;
+			case 2:
+			  $key = 'high';
+			break;
+			case 3:
+			  $key = 'low';
+			break;
+			case 4:
+			  $key = 'close';
+			break;
+			case 5:
+			  $key = 'volume';
+			break;
+			case 6:
+			  $key = 'adj_close';
+			break;
+		  }
+		  $return[$this->symbol][$row][$key] = $data[$c];
+		}
+		$row++;
+	  }
+
     }
     fclose($handle);
-    return $data;
+    return $return;
   }
 
   /*
    * Retrieve's stock market data
    *
-   * @param string  $symbol   the stock symbol
-   * @param string  $stat     the type of data to retrieve, default grabs all data
+   * @param string/array  $symbol   the stock symbol(s)
+   * @param string  	  $stat     the type of data to retrieve, default grabs all data
    *
    * @return  array the requested data
    *
@@ -162,38 +171,47 @@ class StockMarketAPI
    * @since Method available since Release 1.0
    */
   public function getData($symbol='', $stat='') {
-
+	
+	if (is_array($this->symbol)) {
+		$symbol = implode("+", $this->symbol); //The Yahoo! API will take multiple symbols
+	}
+	
     if($symbol) $this->_setParam('symbol', $symbol);
     if($stat) $this->_setParam('stat', $stat);
 
     $data = $this->_request();
 
     if(!$this->history) {
-      if ($this->stat === 'all') {
-        $return = array(
-          'price'                       =>  strip_tags($data[0]),
-          'change'                      =>  strip_tags($data[1]),
-          'volume'                      =>  strip_tags($data[2]),
-          'avg_daily_volume'            =>  strip_tags($data[3]),
-          'stock_exchange'              =>  strip_tags($data[4]),
-          'market_cap'                  =>  strip_tags($data[5]),
-          'book_value'                  =>  strip_tags($data[6]),
-          'ebitda'                      =>  strip_tags($data[7]),
-          'dividend_per_share'          =>  strip_tags($data[8]),
-          'dividend_yield'              =>  strip_tags($data[9]),
-          'earnings_per_share'          =>  strip_tags($data[10]),
-          'fiftytwo_week_high'          =>  strip_tags($data[11]),
-          'fiftytwo_week_low'           =>  strip_tags($data[12]),
-          'fiftyday_moving_avg'         =>  strip_tags($data[13]),
-          'twohundredday_moving_avg'    =>  strip_tags($data[14]),
-          'price_earnings_ratio'        =>  strip_tags($data[15]),
-          'price_earnings_growth_ratio' =>  strip_tags($data[16]),
-          'price_sales_ratio'           =>  strip_tags($data[17]),
-          'price_book_ratio'            =>  strip_tags($data[18]),
-          'short_ratio'                 =>  strip_tags($data[19])
-        );
+      if ($this->stat === 'all') { 
+	    foreach ($data as $item) {
+			
+		  //Add to $return[$symbol] array. Indice 23 is the symbol.
+		  $return[$item[23]] = array(
+			'price'                       =>  strip_tags($item[0]),
+			'change'                      =>  strip_tags($item[1]),
+			'volume'                      =>  strip_tags($item[2]),
+			'avg_daily_volume'            =>  strip_tags($item[3]),
+			'stock_exchange'              =>  strip_tags($item[4]),
+			'market_cap'                  =>  strip_tags($item[5]),
+			'book_value'                  =>  strip_tags($item[6]),
+			'ebitda'                      =>  strip_tags($item[7]),
+			'dividend_per_share'          =>  strip_tags($item[8]),
+			'dividend_yield'              =>  strip_tags($item[9]),
+			'earnings_per_share'          =>  strip_tags($item[10]),
+			'fiftytwo_week_high'          =>  strip_tags($item[11]),
+			'fiftytwo_week_low'           =>  strip_tags($item[12]),
+			'fiftyday_moving_avg'         =>  strip_tags($item[13]),
+			'twohundredday_moving_avg'    =>  strip_tags($item[14]),
+			'price_earnings_ratio'        =>  strip_tags($item[15]),
+			'price_earnings_growth_ratio' =>  strip_tags($item[16]),
+			'price_sales_ratio'           =>  strip_tags($item[17]),
+			'price_book_ratio'            =>  strip_tags($item[18]),
+			'short_ratio'                 =>  strip_tags($item[19])
+		  );
+		}
       } else {
-        $return = array($this->stat => $data[0]);
+		foreach ($data as $item)
+			$return[] = array($this->stat => $item);
       }
     } elseif(is_array($this->history)) {
       $return = $data;
