@@ -206,7 +206,8 @@ class StockMarketAPI
 			'price_earnings_growth_ratio' =>  strip_tags($item[16]),
 			'price_sales_ratio'           =>  strip_tags($item[17]),
 			'price_book_ratio'            =>  strip_tags($item[18]),
-			'short_ratio'                 =>  strip_tags($item[19])
+			'short_ratio'                 =>  strip_tags($item[19]),
+			'name'                 		  =>  strip_tags($item[20])
 		  );
 		}
       } else {
@@ -238,7 +239,7 @@ class StockMarketAPI
   private function _convertStat($stat) {
     switch($stat) {
       case 'all':
-        return 'l1c1va2xj1b4j4dyekjm3m4rr5p5p6s7';
+        return 'l1c1va2xj1b4j4dyekjm3m4rr5p5p6s7n';
         break;
       case 'price':
         return 'l1';
@@ -300,6 +301,9 @@ class StockMarketAPI
       case 'shortRatio':
         return 's7';
         break;
+	  case 'name':
+        return 'n';
+        break;	
     }
   }
 }
