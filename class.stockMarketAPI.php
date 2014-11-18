@@ -242,69 +242,69 @@ class StockMarketAPI
 			case 'all':
 				return 'l1c1va2xj1b4j4dyekjm3m4rr5p5p6s7n';
 				break;
-			case 'price':
-				return 'l1';
+			case '200DayMovingAvg':
+				return 'm3';
 				break;
-			case 'change':
-				return 'c1';
+			case '50DayMovingAvg':
+				return 'm4';
+				break;	
+			case '52WeekLow':
+				return 'j';
 				break;
-			case 'volume':
-				return 'v';
+			case '52WeekHigh':
+				return 'k';
 				break;
 			case 'avgDailyVolume':
-				return 'a2';
-				break;
-			case 'stockExchange':
-				return 'x';
-				break;
-			case 'marketCap':
-				return 'j1';
-				break;
+			  return 'a2';
+			  break;
 			case 'bookValue':
 				return 'b4';
-				break;
-			case 'ebitda':
-				return 'j4';
-				break;
+				break;	
 			case 'dividendPerShare':
 				return 'd';
 				break;
 			case 'dividendYield':
 				return 'y';
 				break;
+			case 'ebitda':
+				return 'j4';
+				break;
 			case 'eps':
 				return 'e';
 				break;
-			case '52WeekHigh':
-				return 'k';
-				break;
-			case '52WeekLow':
-				return 'j';
-				break;
-			case '50DayMovingAvg':
-				return 'm4';
-				break;
-			case '200DayMovingAvg':
-				return 'm3';
-				break;
+			case 'peGrowthRatio':
+				return 'r5';
+				break;	
 			case 'peRatio':
 				return 'r';
 				break;
-			case 'peGrowthRatio':
-				return 'r5';
-				break;
-			case 'priceSalesRatio':
-				return 'p5';
+			case 'price':
+				return 'l1';
 				break;
 			case 'priceBookRatio':
 				return 'p6';
 				break;
-			case 'shortRatio':
-				return 's7';
+			case 'priceSalesRatio':
+				return 'p5';
+				break;
+			case 'change':
+				return 'c1';
+				break;
+			case 'marketCap':
+				return 'j1';
 				break;
 			case 'name':
 				return 'n';
+				break;
+			case 'shortRatio':
+				return 's7';
+				break;
+			case 'stockExchange':
+				return 'x';
 				break;	
+			case 'volume':
+				return 'v';
+				break;
 		}
 	}
 }
