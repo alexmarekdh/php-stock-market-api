@@ -185,8 +185,8 @@ class StockMarketAPI
 			if ($this->stat === 'all') { 
 				foreach ($data as $item) {
 					  
-					//Add to $return[$symbol] array. Indice 23 is the symbol.
-					$return[$item[23]] = array(
+					//Add to $return[$symbol] array. Indice 24 is the symbol.
+					$return[$item[24]] = array(
 						'price'                       =>  strip_tags($item[0]),
 						'change'                      =>  strip_tags($item[1]),
 						'volume'                      =>  strip_tags($item[2]),
@@ -207,7 +207,8 @@ class StockMarketAPI
 						'price_sales_ratio'           =>  strip_tags($item[17]),
 						'price_book_ratio'            =>  strip_tags($item[18]),
 						'short_ratio'                 =>  strip_tags($item[19]),
-						'name'                 		=>  strip_tags($item[20])
+						'name'                 		=>  strip_tags($item[20]),
+						'symbol'			=>  strip_tags($item[24])
 					);
 				}
 			} else {
